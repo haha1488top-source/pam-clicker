@@ -1,1 +1,102 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Моя гра</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #87CEEB; /* блакитний фон */
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
 
+  #game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #player-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; /* можна змінити під розмір картинки */
+  }
+
+  #coins {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: gold;
+  }
+
+  #nickname-display {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+  }
+
+  #nickname-input-container {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+  }
+
+  #nickname-input {
+    padding: 5px;
+    font-size: 16px;
+  }
+
+  #set-nickname {
+    padding: 5px 10px;
+    font-size: 16px;
+  }
+</style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="coins">Монети: <span id="coin-count">0</span></div>
+    <div id="nickname-display"></div>
+    
+    <div id="nickname-input-container">
+      <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
+      <button id="set-nickname">Зберегти нік</button>
+    </div>
+    
+    <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
+  </div>
+
+<script>
+  let coins = 0;
+  const coinCountEl = document.getElementById('coin-count');
+  const nicknameDisplayEl = document.getElementById('nickname-display');
+  const nicknameInput = document.getElementById('nickname-input');
+  const setNicknameBtn = document.getElementById('set-nickname');
+  const playerImage = document.getElementById('player-image');
+
+  // Зберігаємо нікнейм
+  setNicknameBtn.addEventListener('click', () => {
+    const nickname = nicknameInput.value.trim();
+    if (nickname) {
+      nicknameDisplayEl.textContent = nickname;
+      nicknameInput.value = '';
+    }
+  });
+
+  // Натискання на картинку збільшує монети
+  playerImage.addEventListener('click', () => {
+    coins += 1;
+    coinCountEl.textContent = coins;
+  });
+</script>
+</body>
+</html>
