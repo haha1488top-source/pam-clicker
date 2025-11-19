@@ -23,7 +23,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 200px; /* можна змінити під розмір картинки */
+    width: 200px;
+    cursor: pointer;
   }
 
   #coins {
@@ -63,40 +64,68 @@
 </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="coins">Монети: <span id="coin-count">0</span></div>
-    <div id="nickname-display"></div>
-    
-    <div id="nickname-input-container">
-      <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
-      <button id="set-nickname">Зберегти нік</button>
-    </div>
-    
-    <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
+<div id="game-container">
+  <div id="coins">Монети: <span id="coin-count">0</span></div>
+  <div id="nickname-display"></div>
+
+  <div id="nickname-input-container">
+    <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
+    <button id="set-nickname">Зберегти нік</button>
   </div>
 
+  <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
+</div>
+
 <script>
-  let coins = 0;
-  const coinCountEl = document.getElementById('coin-count');
-  const nicknameDisplayEl = document.getElementById('nickname-display');
-  const nicknameInput = document.getElementById('nickname-input');
-  const setNicknameBtn = document.getElementById('set-nickname');
-  const playerImage = document.getElementById('player-image');
+const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
 
-  // Зберігаємо нікнейм
-  setNicknameBtn.addEventListener('click', () => {
-    const nickname = nicknameInput.value.trim();
-    if (nickname) {
-      nicknameDisplayEl.textContent = nickname;
-      nicknameInput.value = '';
-    }
-  });
+let coins = 0;
+let nickname = "";
 
-  // Натискання на картинку збільшує монети
-  playerImage.addEventListener('click', () => {
-    coins += 1;
-    coinCountEl.textContent = coins;
-  });
+const coinCountEl = document.getElementById('coin-count');
+const nicknameDisplayEl = document.getElementById('nickname-display');
+const nicknameInput = document.getElementById('nickname-input');
+const setNicknameBtn = document.getElementById('set-nickname');
+const playerImage = document.getElementById('player-image');
+
+// Зберігаємо нікнейм
+setNicknameBtn.addEventListener('click', () => {
+  const inputNick = nicknameInput.value.trim();
+  if (inputNick) {
+    nickname = inputNick;
+    nicknameDisplayEl.textContent = nickname;
+    nicknameInput.value = '';
+
+    // Відправляємо на сервер з поточними монетами
+    saveData();
+  }
+});
+
+// Натискання на картинку збільшує монети
+playerImage.addEventListener('click', () => {
+  if (!nickname) {
+    alert("Спочатку введіть нікнейм!");
+    return;
+  }
+
+  coins += 1;
+  coinCountEl.textContent = coins;
+
+  // Відправляємо дані на сервер
+  saveData();
+});
+
+// Функція для відправки даних на сервер
+function saveData() {
+  fetch(`${SERVER_URL}/save`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nick: nickname, coins: coins })
+  })
+  .then(res => res.json())
+  .then(data => console.log(data.message))
+  .catch(err => console.error("Помилка при відправці даних:", err));
+}
 </script>
 </body>
 </html>
