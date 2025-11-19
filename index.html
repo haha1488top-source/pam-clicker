@@ -5,40 +5,149 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Моя гра</title>
 <style>
-  html, body { margin:0; padding:0; width:100%; height:100%; font-family:Arial,sans-serif; background-color:#87CEEB; overflow:hidden; }
-  #nickname-screen, #game-screen { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  #nickname-screen { background-color:#87CEEB; }
-  #nickname-input { padding:10px; font-size:18px; width:60%; max-width:300px; margin-bottom:10px; border:2px solid #fff; border-radius:5px; text-align:center; }
-  #set-nickname { padding:10px 20px; font-size:18px; border:none; border-radius:5px; background-color:gold; cursor:pointer; }
-  #game-screen { display:none; position:relative; }
-  #player-image { width:150px; cursor:pointer; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
-  #nickname-display { position:absolute; top:10px; left:10px; font-size:20px; font-weight:bold; color:white; }
-  #currency-bar { position:absolute; top:10px; left:50%; transform:translateX(-50%); display:flex; gap:20px; align-items:center; }
-  .currency { display:flex; align-items:center; font-size:24px; font-weight:bold; color:white; }
-  .currency-icon { width:30px; height:30px; margin-right:5px; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #87CEEB;
+  }
+
+  /* Екрани гри */
+  #nickname-screen, #game-screen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #nickname-screen {
+    background-color: #87CEEB;
+  }
+
+  #nickname-input {
+    padding: 10px;
+    font-size: 18px;
+    width: 60%;
+    max-width: 300px;
+    margin-bottom: 10px;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    text-align: center;
+  }
+
+  #set-nickname {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: gold;
+    cursor: pointer;
+  }
+
+  /* Основний екран гри */
+  #game-screen {
+    display: none;
+    position: relative;
+  }
+
+  #player-image {
+    width: 150px;
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Нікнейм */
+  #nickname-display {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+  }
+
+  /* Кнопка виходу */
+  #logout-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    font-size: 16px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  /* Валюта по центру */
+  #currency-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .currency {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+  }
+
+  .currency-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+  }
 </style>
 </head>
 <body>
 
+<!-- Екран введення нікнейму -->
 <div id="nickname-screen">
   <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
   <button id="set-nickname">Почати гру</button>
 </div>
 
+<!-- Основний екран гри -->
 <div id="game-screen">
   <div id="nickname-display"></div>
+  <button id="logout-btn">Вихід</button>
+
   <div id="currency-bar">
-    <div class="currency"><img src="coin.png" class="currency-icon"><span id="coin-count">0</span></div>
-    <div class="currency"><img src="gem.png" class="currency-icon"><span id="crystal-count">0</span></div>
+    <div class="currency">
+      <img src="coin.png" alt="Монети" class="currency-icon">
+      <span id="coin-count">0</span>
+    </div>
+    <div class="currency">
+      <img src="gem.png" alt="Кристали" class="currency-icon">
+      <span id="crystal-count">0</span>
+    </div>
   </div>
-  <img id="player-image" src="pam_egg_pam_pin.png">
+
+  <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
 </div>
 
 <script>
 const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
 
 let coins = 0;
-let crystals = 0;
+let crystals = 0; 
 let nickname = "";
 
 const nicknameScreen = document.getElementById('nickname-screen');
@@ -49,44 +158,87 @@ const coinCountEl = document.getElementById('coin-count');
 const crystalCountEl = document.getElementById('crystal-count');
 const nicknameDisplayEl = document.getElementById('nickname-display');
 const playerImage = document.getElementById('player-image');
+const logoutBtn = document.getElementById('logout-btn');
 
+// Завантаження нікнейму з localStorage
+window.addEventListener('DOMContentLoaded', () => {
+  const storedNick = localStorage.getItem('nickname');
+  if(storedNick){
+    nickname = storedNick;
+    startGame();
+    loadProgress();
+  }
+});
+
+// Початок гри
 setNicknameBtn.addEventListener('click', () => {
-  const nick = nicknameInput.value.trim();
-  if (!nick) { alert("Введіть нікнейм!"); return; }
-  nickname = nick;
+  const inputNick = nicknameInput.value.trim();
+  if (!inputNick) { alert("Введіть нікнейм!"); return; }
+  nickname = inputNick;
+  localStorage.setItem('nickname', nickname);
+  coins = 0;
+  crystals = 0;
+  startGame();
+  saveData();
+});
+
+function startGame(){
   nicknameDisplayEl.textContent = nickname;
   nicknameScreen.style.display = 'none';
   gameScreen.style.display = 'block';
-
-  // стартові значення
-  coins = 0;
-  crystals = 0;
-  updateUI();
-  saveData();
-});
-
-playerImage.addEventListener('click', () => {
-  if (!nickname) { alert("Спершу введіть нікнейм!"); return; }
-  coins += 1; // монети за кліки
-  updateUI();
-  saveData();
-});
-
-function updateUI() {
   coinCountEl.textContent = coins;
   crystalCountEl.textContent = crystals;
 }
 
+// Клік на картинку додає лише монети
+playerImage.addEventListener('click', () => {
+  if (!nickname) { alert("Спершу введіть нікнейм!"); return; }
+  coins += 1;
+  coinCountEl.textContent = coins;
+  saveData();
+});
+
+// Кнопка виходу
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('nickname');
+  nickname = "";
+  coins = 0;
+  crystals = 0;
+  nicknameScreen.style.display = 'flex';
+  gameScreen.style.display = 'none';
+});
+
+// Функція відправки даних на сервер
 function saveData() {
-  if (!nickname) return;
   fetch(`${SERVER_URL}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nick: nickname, coins, crystals })
+    body: JSON.stringify({ nick: nickname, coins: coins, crystals: crystals })
   })
   .then(res => res.json())
-  .then(data => console.log("Сервер:", data))
-  .catch(err => console.error("Помилка:", err));
+  .then(data => console.log("Дані збережено:", data))
+  .catch(err => console.error("Помилка при відправці даних:", err));
+}
+
+// Завантаження прогресу (монети і кристали) з сервера
+function loadProgress() {
+  fetch(`${SERVER_URL}/db`)
+    .then(res => res.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const rows = doc.querySelectorAll('tbody tr');
+      rows.forEach(r => {
+        const cells = r.querySelectorAll('td');
+        if(cells[0].textContent === nickname){
+          coins = parseInt(cells[1].textContent) || 0;
+          crystals = parseInt(cells[2].textContent) || 0;
+          coinCountEl.textContent = coins;
+          crystalCountEl.textContent = crystals;
+        }
+      });
+    })
+    .catch(err => console.error("Помилка завантаження прогресу:", err));
 }
 </script>
 
