@@ -1,184 +1,86 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Моя гра</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    font-family: Arial, sans-serif;
-    background-color: #87CEEB;
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// "БД" у пам'яті
+let users = [];
+
+// POST /save - додати або оновити користувача
+app.post('/save', (req, res) => {
+  const { nick, coins, crystals } = req.body;
+  if (!nick) return res.status(400).json({ message: "Нік обов'язковий" });
+
+  const existing = users.find(u => u.nick === nick);
+  if (existing) {
+    existing.coins = coins ?? existing.coins;
+    existing.crystals = crystals ?? existing.crystals ?? 0;
+  } else {
+    users.push({ 
+      nick, 
+      coins: coins ?? 0, 
+      crystals: crystals ?? 0 
+    });
   }
-
-  /* Екрани гри */
-  #nickname-screen, #game-screen {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #nickname-screen {
-    background-color: #87CEEB;
-  }
-
-  #nickname-input {
-    padding: 10px;
-    font-size: 18px;
-    width: 60%;
-    max-width: 300px;
-    margin-bottom: 10px;
-    border: 2px solid #fff;
-    border-radius: 5px;
-    text-align: center;
-  }
-
-  #set-nickname {
-    padding: 10px 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 5px;
-    background-color: gold;
-    cursor: pointer;
-  }
-
-  /* Основний екран гри */
-  #game-screen {
-    display: none;
-    position: relative;
-  }
-
-  #player-image {
-    width: 150px;
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* Нікнейм */
-  #nickname-display {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-  }
-
-  /* Валюта по центру */
-  #currency-bar {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .currency {
-    display: flex;
-    align-items: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-  }
-
-  .currency-icon {
-    width: 30px;
-    height: 30px;
-    margin-right: 5px;
-  }
-</style>
-</head>
-<body>
-
-<!-- Екран введення нікнейму -->
-<div id="nickname-screen">
-  <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
-  <button id="set-nickname">Почати гру</button>
-</div>
-
-<!-- Основний екран гри -->
-<div id="game-screen">
-  <div id="nickname-display"></div>
-
-  <div id="currency-bar">
-    <div class="currency">
-      <img src="coin.png" alt="Монети" class="currency-icon">
-      <span id="coin-count">0</span>
-    </div>
-    <div class="currency">
-      <img src="gem.png" alt="Кристали" class="currency-icon">
-      <span id="crystal-count">0</span>
-    </div>
-  </div>
-
-  <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
-</div>
-
-<script>
-const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
-
-let coins = 0;
-let crystals = 0; // нова валюта
-let nickname = "";
-
-const nicknameScreen = document.getElementById('nickname-screen');
-const gameScreen = document.getElementById('game-screen');
-
-const nicknameInput = document.getElementById('nickname-input');
-const setNicknameBtn = document.getElementById('set-nickname');
-const coinCountEl = document.getElementById('coin-count');
-const crystalCountEl = document.getElementById('crystal-count');
-const nicknameDisplayEl = document.getElementById('nickname-display');
-const playerImage = document.getElementById('player-image');
-
-// Початок гри після введення нікнейму
-setNicknameBtn.addEventListener('click', () => {
-  const inputNick = nicknameInput.value.trim();
-  if (!inputNick) {
-    alert("Введіть нікнейм!");
-    return;
-  }
-  nickname = inputNick;
-  nicknameDisplayEl.textContent = nickname;
-  nicknameScreen.style.display = 'none';
-  gameScreen.style.display = 'block';
-
-  saveData(); // зберігаємо нік, монети та кристали
+  res.json({ message: "Дані збережено" });
 });
 
-// Клік на картинку додає лише монети
-playerImage.addEventListener('click', () => {
-  coins += 1;
-  coinCountEl.textContent = coins;
-  saveData();
+// POST /update - редагування монет або кристалів вручну
+app.post('/update', (req, res) => {
+  const { nick, coins, crystals } = req.body;
+  const user = users.find(u => u.nick === nick);
+  if (!user) return res.status(404).json({ message: "Гравець не знайдений" });
+
+  user.coins = coins ?? user.coins;
+  user.crystals = crystals ?? user.crystals;
+  res.json({ message: `Дані гравця ${nick} оновлено` });
 });
 
-// Функція відправки даних на сервер
-function saveData() {
-  fetch(`${SERVER_URL}/save`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nick: nickname, coins: coins, crystals: crystals })
-  })
-  .then(res => res.json())
-  .then(data => console.log(data.message))
-  .catch(err => console.error("Помилка при відправці даних:", err));
-}
-</script>
+// GET /db - повертає HTML таблицю
+app.get('/db', (req, res) => {
+  fs.readFile('db.html', 'utf8', (err, data) => {
+    if (err) return res.status(500).send("Помилка читання HTML");
 
-</body>
-</html>
+    let tableRows = '';
+    users.forEach(u => {
+      tableRows += `<tr>
+        <td>${u.nick}</td>
+        <td><input type="number" value="${u.coins}" data-nick="${u.nick}" data-type="coins"></td>
+        <td><input type="number" value="${u.crystals}" data-nick="${u.nick}" data-type="crystals"></td>
+        <td><button onclick="updatePlayer('${u.nick}', this)">Зберегти</button></td>
+      </tr>`;
+    });
+
+    const htmlWithTable = data.replace('<!--TABLE_ROWS-->', tableRows);
+    res.send(htmlWithTable);
+  });
+});
+
+// GET / - також повертає HTML таблицю
+app.get('/', (req, res) => {
+  fs.readFile('db.html', 'utf8', (err, data) => {
+    if (err) return res.status(500).send("Помилка читання HTML");
+
+    let tableRows = '';
+    users.forEach(u => {
+      tableRows += `<tr>
+        <td>${u.nick}</td>
+        <td><input type="number" value="${u.coins}" data-nick="${u.nick}" data-type="coins"></td>
+        <td><input type="number" value="${u.crystals}" data-nick="${u.nick}" data-type="crystals"></td>
+        <td><button onclick="updatePlayer('${u.nick}', this)">Зберегти</button></td>
+      </tr>`;
+    });
+
+    const htmlWithTable = data.replace('<!--TABLE_ROWS-->', tableRows);
+    res.send(htmlWithTable);
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
