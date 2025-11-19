@@ -8,7 +8,7 @@
   html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* забороняємо скролінг */
+    overflow: hidden;
     width: 100%;
     height: 100%;
     font-family: Arial, sans-serif;
@@ -51,7 +51,7 @@
   }
 
   #game-screen {
-    display: none; /* приховано до введення нікнейму */
+    display: none;
     position: relative;
   }
 
@@ -64,14 +64,22 @@
     transform: translate(-50%, -50%);
   }
 
-  #coins {
+  #coins, #crystals {
     position: absolute;
     top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
     font-size: 24px;
     font-weight: bold;
     color: gold;
+  }
+
+  #coins {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  #crystals {
+    right: 10px;
+    color: deepskyblue;
   }
 
   #nickname-display {
@@ -86,15 +94,14 @@
 </head>
 <body>
 
-<!-- Екран введення нікнейму -->
 <div id="nickname-screen">
   <input type="text" id="nickname-input" placeholder="Введіть нікнейм">
   <button id="set-nickname">Почати гру</button>
 </div>
 
-<!-- Основний екран гри -->
 <div id="game-screen">
   <div id="coins">Монети: <span id="coin-count">0</span></div>
+  <div id="crystals">Кристали: <span id="crystal-count">0</span></div>
   <div id="nickname-display"></div>
   <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
 </div>
@@ -103,6 +110,7 @@
 const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
 
 let coins = 0;
+let crystals = 0; // нова валюта
 let nickname = "";
 
 const nicknameScreen = document.getElementById('nickname-screen');
@@ -111,10 +119,11 @@ const gameScreen = document.getElementById('game-screen');
 const nicknameInput = document.getElementById('nickname-input');
 const setNicknameBtn = document.getElementById('set-nickname');
 const coinCountEl = document.getElementById('coin-count');
+const crystalCountEl = document.getElementById('crystal-count');
 const nicknameDisplayEl = document.getElementById('nickname-display');
 const playerImage = document.getElementById('player-image');
 
-// Почати гру після введення нікнейму
+// Початок гри після введення нікнейму
 setNicknameBtn.addEventListener('click', () => {
   const inputNick = nicknameInput.value.trim();
   if (!inputNick) {
@@ -126,22 +135,22 @@ setNicknameBtn.addEventListener('click', () => {
   nicknameScreen.style.display = 'none';
   gameScreen.style.display = 'block';
 
-  saveData(); // зберігаємо нік і початкові монети
+  saveData(); // зберігаємо нік, монети та кристали
 });
 
-// Клік на картинку додає монети
+// Клік на картинку додає лише монети
 playerImage.addEventListener('click', () => {
   coins += 1;
   coinCountEl.textContent = coins;
   saveData();
 });
 
-// Функція для відправки даних на сервер
+// Функція відправки даних на сервер
 function saveData() {
   fetch(`${SERVER_URL}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nick: nickname, coins: coins })
+    body: JSON.stringify({ nick: nickname, coins: coins, crystals: crystals })
   })
   .then(res => res.json())
   .then(data => console.log(data.message))
