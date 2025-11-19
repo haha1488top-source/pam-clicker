@@ -8,14 +8,14 @@
   html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden; /* заборона скролінгу */
+    overflow: hidden;
     width: 100%;
     height: 100%;
     font-family: Arial, sans-serif;
     background-color: #87CEEB;
   }
 
-  /* Екран введення нікнейму */
+  /* Екрани гри */
   #nickname-screen, #game-screen {
     position: absolute;
     top: 0; left: 0;
@@ -53,7 +53,7 @@
 
   /* Основний екран гри */
   #game-screen {
-    display: none; /* приховано до введення нікнейму */
+    display: none;
     position: relative;
   }
 
@@ -66,30 +66,39 @@
     transform: translate(-50%, -50%);
   }
 
-  #coins, #crystals {
-    position: absolute;
-    top: 10px;
-    font-size: 24px;
-    font-weight: bold;
-  }
-
-  #coins {
-    left: 10px; /* монети ліворуч */
-    color: gold;
-  }
-
-  #crystals {
-    right: 10px; /* кристали праворуч */
-    color: deepskyblue;
-  }
-
+  /* Нікнейм */
   #nickname-display {
     position: absolute;
-    top: 50px;
+    top: 10px;
     left: 10px;
     font-size: 20px;
     font-weight: bold;
     color: white;
+  }
+
+  /* Валюта по центру */
+  #currency-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .currency {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+  }
+
+  .currency-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
   }
 </style>
 </head>
@@ -103,9 +112,19 @@
 
 <!-- Основний екран гри -->
 <div id="game-screen">
-  <div id="coins">Монети: <span id="coin-count">0</span></div>
-  <div id="crystals">Кристали: <span id="crystal-count">0</span></div>
   <div id="nickname-display"></div>
+
+  <div id="currency-bar">
+    <div class="currency">
+      <img src="coin.png" alt="Монети" class="currency-icon">
+      <span id="coin-count">0</span>
+    </div>
+    <div class="currency">
+      <img src="gem.png" alt="Кристали" class="currency-icon">
+      <span id="crystal-count">0</span>
+    </div>
+  </div>
+
   <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
 </div>
 
