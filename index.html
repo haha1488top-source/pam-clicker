@@ -129,10 +129,11 @@
 </div>
 
 <script>
-const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev/";
+// Правильний URL сервера без слеша в кінці
+const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
 
 let coins = 0;
-let crystals = 0; // нова валюта
+let crystals = 0;
 let nickname = "";
 
 const nicknameScreen = document.getElementById('nickname-screen');
@@ -152,15 +153,18 @@ setNicknameBtn.addEventListener('click', () => {
     alert("Введіть нікнейм!");
     return;
   }
+
   nickname = inputNick;
   nicknameDisplayEl.textContent = nickname;
   nicknameScreen.style.display = 'none';
   gameScreen.style.display = 'block';
 
+  // Стартові значення монет та кристалів
   coins = 0;
   crystals = 0;
+  updateUI();
 
-  saveData(); // зберігаємо нік, монети та кристали
+  saveData(); // Зберігаємо дані на сервер
 });
 
 // Клік на картинку додає лише монети
@@ -170,16 +174,19 @@ playerImage.addEventListener('click', () => {
     return;
   }
 
-  coins += 1;
-  coinCountEl.textContent = coins;
-
+  coins += 1; // монети за кліки
+  updateUI();
   saveData();
 });
 
-// Функція відправки даних на сервер
-function saveData() {
-  console.log("Відправка даних:", { nick: nickname, coins: coins, crystals: crystals });
+// Оновлення UI
+function updateUI() {
+  coinCountEl.textContent = coins;
+  crystalCountEl.textContent = crystals;
+}
 
+// Відправка даних на сервер
+function saveData() {
   fetch(`${SERVER_URL}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
