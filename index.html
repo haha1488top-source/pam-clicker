@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Моя гра</title>
+
 <style>
   html, body {
     margin: 0;
@@ -15,21 +16,24 @@
     background-color: #87CEEB;
   }
 
-  /* Екрани гри */
-  #nickname-screen, #game-screen {
+  /* Екрани */
+  #nickname-screen, #game-screen, #shop-screen {
     position: absolute;
     top: 0; left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
   }
 
   #nickname-screen {
+    display: flex;
+    flex-direction: column;
     background-color: #87CEEB;
   }
+
+  #game-screen { display: none; position: relative; }
+  #shop-screen { display: none; background: #6EC5FF; }
 
   #nickname-input {
     padding: 10px;
@@ -51,12 +55,6 @@
     cursor: pointer;
   }
 
-  /* Основний екран гри */
-  #game-screen {
-    display: none;
-    position: relative;
-  }
-
   #player-image {
     width: 150px;
     cursor: pointer;
@@ -66,7 +64,6 @@
     transform: translate(-50%, -50%);
   }
 
-  /* Нікнейм */
   #nickname-display {
     position: absolute;
     top: 10px;
@@ -76,7 +73,6 @@
     color: white;
   }
 
-  /* Кнопка виходу */
   #logout-btn {
     position: absolute;
     top: 10px;
@@ -90,7 +86,21 @@
     cursor: pointer;
   }
 
-  /* Валюта по центру */
+  /* НОВА КНОПКА — МАГАЗИН */
+  #shop-btn {
+    position: absolute;
+    top: 100px;     /* твоя умова */
+    left: 10px;
+    padding: 8px 15px;
+    font-size: 18px;
+    background: #00AFFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  /* Панель валюти */
   #currency-bar {
     position: absolute;
     top: 10px;
@@ -114,6 +124,20 @@
     height: 30px;
     margin-right: 5px;
   }
+
+  /* Магазин */
+  #shop-back {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    background: #ff4747;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -124,34 +148,47 @@
   <button id="set-nickname">Почати гру</button>
 </div>
 
-<!-- Основний екран гри -->
+<!-- Головний екран гри -->
 <div id="game-screen">
   <div id="nickname-display"></div>
+
   <button id="logout-btn">Вихід</button>
+
+  <!-- КНОПКА МАГАЗИН -->
+  <button id="shop-btn">Магазин</button>
 
   <div id="currency-bar">
     <div class="currency">
-      <img src="coin.png" alt="Монети" class="currency-icon">
+      <img src="coin.png" class="currency-icon">
       <span id="coin-count">0</span>
     </div>
     <div class="currency">
-      <img src="gem.png" alt="Кристали" class="currency-icon">
+      <img src="gem.png" class="currency-icon">
       <span id="crystal-count">0</span>
     </div>
   </div>
 
-  <img id="player-image" src="pam_egg_pam_pin.png" alt="Pam Egg Pam Pin">
+  <img id="player-image" src="pam_egg_pam_pin.png">
+</div>
+
+<!-- МАГАЗИН -->
+<div id="shop-screen">
+  <button id="shop-back">Назад</button>
+
+  <h1 style="color:white;">МАГАЗИН (поки пусто)</h1>
 </div>
 
 <script>
 const SERVER_URL = "https://a9899f91-a853-4bd7-af7b-5ee3862e858c-00-3gmthkd6va98d.janeway.replit.dev";
 
 let coins = 0;
-let crystals = 0; 
+let crystals = 0;
 let nickname = "";
 
 const nicknameScreen = document.getElementById('nickname-screen');
 const gameScreen = document.getElementById('game-screen');
+const shopScreen = document.getElementById('shop-screen');
+
 const nicknameInput = document.getElementById('nickname-input');
 const setNicknameBtn = document.getElementById('set-nickname');
 const coinCountEl = document.getElementById('coin-count');
@@ -160,20 +197,23 @@ const nicknameDisplayEl = document.getElementById('nickname-display');
 const playerImage = document.getElementById('player-image');
 const logoutBtn = document.getElementById('logout-btn');
 
-// Завантаження нікнейму з localStorage
+const shopBtn = document.getElementById('shop-btn');
+const shopBackBtn = document.getElementById('shop-back');
+
+/* Завантаження акаунту */
 window.addEventListener('DOMContentLoaded', () => {
   const storedNick = localStorage.getItem('nickname');
-  if(storedNick){
+  if (storedNick) {
     nickname = storedNick;
     startGame();
     loadProgress();
   }
 });
 
-// Початок гри
+/* Початок гри */
 setNicknameBtn.addEventListener('click', () => {
   const inputNick = nicknameInput.value.trim();
-  if (!inputNick) { alert("Введіть нікнейм!"); return; }
+  if (!inputNick) return alert("Введіть нікнейм!");
   nickname = inputNick;
   localStorage.setItem('nickname', nickname);
   coins = 0;
@@ -182,7 +222,7 @@ setNicknameBtn.addEventListener('click', () => {
   saveData();
 });
 
-function startGame(){
+function startGame() {
   nicknameDisplayEl.textContent = nickname;
   nicknameScreen.style.display = 'none';
   gameScreen.style.display = 'block';
@@ -190,15 +230,15 @@ function startGame(){
   crystalCountEl.textContent = crystals;
 }
 
-// Клік на картинку додає лише монети
+/* Клік додає монети */
 playerImage.addEventListener('click', () => {
-  if (!nickname) { alert("Спершу введіть нікнейм!"); return; }
+  if (!nickname) return alert("Введіть нікнейм!");
   coins += 1;
   coinCountEl.textContent = coins;
   saveData();
 });
 
-// Кнопка виходу
+/* Вихід */
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('nickname');
   nickname = "";
@@ -208,37 +248,43 @@ logoutBtn.addEventListener('click', () => {
   gameScreen.style.display = 'none';
 });
 
-// Функція відправки даних на сервер
+/* МАГАЗИН — відкриття */
+shopBtn.addEventListener('click', () => {
+  gameScreen.style.display = 'none';
+  shopScreen.style.display = 'flex';
+});
+
+/* МАГАЗИН — назад */
+shopBackBtn.addEventListener('click', () => {
+  shopScreen.style.display = 'none';
+  gameScreen.style.display = 'block';
+});
+
+/* Збереження в БД */
 function saveData() {
   fetch(`${SERVER_URL}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nick: nickname, coins: coins, crystals: crystals })
-  })
-  .then(res => res.json())
-  .then(data => console.log("Дані збережено:", data))
-  .catch(err => console.error("Помилка при відправці даних:", err));
+  });
 }
 
-// Завантаження прогресу (монети і кристали) з сервера
+/* Завантаження даних з БД */
 function loadProgress() {
   fetch(`${SERVER_URL}/db`)
     .then(res => res.text())
     .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const rows = doc.querySelectorAll('tbody tr');
-      rows.forEach(r => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('tbody tr').forEach(r => {
         const cells = r.querySelectorAll('td');
-        if(cells[0].textContent === nickname){
+        if (cells[0].textContent === nickname) {
           coins = parseInt(cells[1].textContent) || 0;
           crystals = parseInt(cells[2].textContent) || 0;
           coinCountEl.textContent = coins;
           crystalCountEl.textContent = crystals;
         }
       });
-    })
-    .catch(err => console.error("Помилка завантаження прогресу:", err));
+    });
 }
 </script>
 
